@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
+    <rosparam param="mappings">
+      - {old: "/map_orb",
+         new: "/odom"}
+    </rosparam>
+  </node>
+</launch>

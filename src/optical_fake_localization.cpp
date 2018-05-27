@@ -214,7 +214,7 @@ public:
             return;
         }
         map_to_odom = loc_global_to_loc_camera * robot_camera_to_odom ;
-        //map_to_odom = m_offsetTf * map_to_odom;
+        map_to_odom = m_offsetTf * map_to_odom;
         // m_tfServer->sendTransform(tf::StampedTransform(odom_to_map.inverse(),
         //                                                message->header.stamp + ros::Duration(transform_tolerance_),
         //                                                global_frame_id_, message->header.frame_id));
