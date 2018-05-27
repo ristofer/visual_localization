@@ -127,6 +127,8 @@ public:
         m_initPoseSub = new message_filters::Subscriber<geometry_msgs::PoseWithCovarianceStamped>(nh, "initialpose", 1);
         m_initPoseFilter = new tf::MessageFilter<geometry_msgs::PoseWithCovarianceStamped>(*m_initPoseSub, *m_tfListener, global_frame_id_, 1);
         m_initPoseFilter->registerCallback(boost::bind(&FakeOdomNode::initPoseReceived, this, _1));
+        map_to_odom = tf::Transform();
+        map_to_odom.setIdentity();
     }
 
     ~FakeOdomNode(void)
@@ -156,7 +158,7 @@ private:
     geometry_msgs::PoseArray      m_particleCloud;
     geometry_msgs::PoseWithCovarianceStamped      m_currentPos;
     tf::Transform m_offsetTf;
-
+    tf::Transform map_to_odom;
     //parameter for what odom to use
     std::string odom_frame_id_;
     std::string base_frame_id_;
@@ -181,11 +183,11 @@ public:
         tf::Pose txi;
         tf::poseMsgToTF(message->pose.pose, txi);
         txi = m_offsetTf * txi;
-
+        bool ok_tf = true;
         tf::Stamped<tf::Pose> odom_to_map;
         tf::StampedTransform loc_global_to_loc_camera;
         tf::StampedTransform robot_camera_to_odom;
-        tf::Transform map_to_odom;
+
         try
         {
             m_tfListener->transformPose(odom_frame_id_, tf::Stamped<tf::Pose>(txi.inverse(), message->header.stamp, base_frame_id_), odom_to_map);
@@ -198,6 +200,11 @@ public:
         try
         {
             m_tfListener->lookupTransform(localization_global_frame_id_,localization_camera_optical_frame_id__,ros::Time(0),loc_global_to_loc_camera);
+            ros::Duration elapsed_time = ros::Time::now()-loc_global_to_loc_camera.stamp_;
+            if(elapsed_time.toSec()>2){
+                ROS_ERROR("Too old tf. Failed to transform to %s from %s\n", localization_global_frame_id_.c_str(), localization_camera_optical_frame_id__.c_str());
+                ok_tf = false;
+            }
         }
         catch(tf::TransformException &e)
         {
@@ -213,8 +220,10 @@ public:
             ROS_ERROR("Failed to transform to %s from %s: %s\n", robot_camera_frame_id_.c_str(), odom_frame_id_.c_str(), e.what());
             return;
         }
-        map_to_odom = loc_global_to_loc_camera * robot_camera_to_odom ;
-        map_to_odom = m_offsetTf * map_to_odom;
+        if(ok_tf){
+            map_to_odom = loc_global_to_loc_camera * robot_camera_to_odom ;
+            map_to_odom = m_offsetTf * map_to_odom;
+        }
         // m_tfServer->sendTransform(tf::StampedTransform(odom_to_map.inverse(),
         //                                                message->header.stamp + ros::Duration(transform_tolerance_),
         //                                                global_frame_id_, message->header.frame_id));
