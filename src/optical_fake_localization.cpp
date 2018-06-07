@@ -292,11 +292,11 @@ public:
        // tf::Quaternion new_rotation = pose_as_transform.getRotation();
 
         tfScalar yaw, pitch, roll;
-        tf::Matrix3x3 = pose_as_transform.getBasis();
+        tf::Matrix3x3 mat = pose_as_transform.getBasis();
         mat.getEulerYPR(&yaw, &pitch, &roll);
         new_rotation.setEuler(yaw,0.0,0.0);
 
-        new_transform.setOrigin(new_basis);
+        new_transform.setOrigin(new_origin);
         new_transform.setRotation(new_rotation);
         return new_transform ;
 
