@@ -293,7 +293,7 @@ public:
 
         tfScalar yaw, pitch, roll;
         tf::Matrix3x3 mat = pose_as_transform.getBasis();
-        mat.getEulerYPR(&yaw, &pitch, &roll);
+        mat.getEulerYPR(yaw, pitch, roll);
         new_rotation.setEuler(yaw,0.0,0.0);
 
         new_transform.setOrigin(new_origin);
