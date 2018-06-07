@@ -227,6 +227,7 @@ public:
         // m_tfServer->sendTransform(tf::StampedTransform(odom_to_map.inverse(),
         //                                                message->header.stamp + ros::Duration(transform_tolerance_),
         //                                                global_frame_id_, message->header.frame_id));
+        map_to_odom = projectPoseToPlane(map_to_odom);
         m_tfServer->sendTransform(tf::StampedTransform(map_to_odom,
                                                        message->header.stamp + ros::Duration(transform_tolerance_),
                                                        global_frame_id_, message->header.frame_id));
@@ -280,6 +281,24 @@ public:
 
         tf::Transform delta = pose * baseInMap;
         m_offsetTf = delta * m_offsetTf;
+
+    }
+    tf::Transform projectPoseToPlane(tf::Transform pose_as_transform){
+
+        tf::Transform new_transform; 
+        tf::Quaternion new_rotation;
+        tf::Vector3 new_origin = pose_as_transform.getOrigin();
+        new_origin.setZ(0.0);
+       // tf::Quaternion new_rotation = pose_as_transform.getRotation();
+
+        tfScalar yaw, pitch, roll;
+        tf::Matrix3x3 = pose_as_transform.getBasis();
+        mat.getEulerYPR(&yaw, &pitch, &roll);
+        new_rotation.setEuler(yaw,0.0,0.0);
+
+        new_transform.setOrigin(new_basis);
+        new_transform.setRotation(new_rotation);
+        return new_transform ;
 
     }
 };
