@@ -111,6 +111,7 @@ public:
         private_nh.param("localization_global_frame_id", localization_global_frame_id_, std::string("map"));
         private_nh.param("localization_camera_optical_frame_id", localization_camera_optical_frame_id__,std::string("camera_position"));
         private_nh.param("robot_camera_frame_id", robot_camera_frame_id_,std::string("CameraTop_optical_frame"));
+        private_nh.param("delay_tolerance", delay_tolerance_,2.0);
         m_particleCloud.header.stamp = ros::Time::now();
         m_particleCloud.header.frame_id = global_frame_id_;
         m_particleCloud.poses.resize(1);
@@ -153,6 +154,7 @@ private:
     double                         delta_x_, delta_y_, delta_yaw_;
     bool                           m_base_pos_received;
     double transform_tolerance_;
+    double delay_tolerance_;
 
     nav_msgs::Odometry  m_basePosMsg;
     geometry_msgs::PoseArray      m_particleCloud;
@@ -201,7 +203,7 @@ public:
         {
             m_tfListener->lookupTransform(localization_global_frame_id_,localization_camera_optical_frame_id__,ros::Time(0),loc_global_to_loc_camera);
             ros::Duration elapsed_time = ros::Time::now()-loc_global_to_loc_camera.stamp_;
-            if(elapsed_time.toSec()>2){
+            if(elapsed_time.toSec()>delay_tolerance_){
                 ROS_ERROR("Too old tf. Failed to transform to %s from %s\n", localization_global_frame_id_.c_str(), localization_camera_optical_frame_id__.c_str());
                 ok_tf = false;
             }
